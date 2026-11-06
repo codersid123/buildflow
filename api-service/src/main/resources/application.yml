@@ -1,1 +1,14 @@
-spring.application.name=api-service
+﻿spring:
+  application:
+    name: api-service
+  datasource:
+    url: jdbc:postgresql://localhost:5433/buildflow
+    username: postgres
+    password: pass
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8080
