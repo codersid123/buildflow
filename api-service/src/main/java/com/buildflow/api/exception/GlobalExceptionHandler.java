@@ -19,6 +19,13 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+        @ExceptionHandler(UsernameTakenException.class)
+    public ProblemDetail handleUsernameTaken(UsernameTakenException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Username taken");
+        return problem;
+    }
+    
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
