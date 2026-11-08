@@ -1,6 +1,11 @@
 ﻿spring:
   application:
     name: api-service
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
   datasource:
     url: jdbc:postgresql://localhost:5433/buildflow
     username: postgres

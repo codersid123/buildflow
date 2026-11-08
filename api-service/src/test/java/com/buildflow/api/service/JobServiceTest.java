@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.buildflow.api.dto.CreateJobRequest;
 import com.buildflow.api.dto.JobResponse;
@@ -25,6 +26,7 @@ import com.buildflow.api.model.Role;
 import com.buildflow.api.model.User;
 import com.buildflow.api.repository.JobRepository;
 import com.buildflow.api.repository.UserRepository;
+import com.buildflow.api.service.JobService;
 
 @ExtendWith(MockitoExtension.class)
 class JobServiceTest {
@@ -34,6 +36,9 @@ class JobServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private JobService jobService;

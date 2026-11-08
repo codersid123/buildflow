@@ -12,24 +12,31 @@ import com.buildflow.api.model.Job;
 import com.buildflow.api.model.User;
 import com.buildflow.api.repository.JobRepository;
 import com.buildflow.api.repository.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
+import com.buildflow.api.event.JobCreatedEvent;
 
 @Service
 public class JobService {
 
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public JobService(JobRepository jobRepository, UserRepository userRepository) {
+    public JobService(JobRepository jobRepository, 
+                      UserRepository userRepository,
+                      ApplicationEventPublisher eventPublisher) {
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
-    @Transactional
+        @Transactional
     public JobResponse createJob(CreateJobRequest request, String username) {
         User owner = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + username));
-        Job job = new Job(request.repoUrl(), request.branch(), request.command(), owner);
-        return JobResponse.from(jobRepository.save(job));
+        Job saved = jobRepository.save(new Job(request.repoUrl(), request.branch(), request.command(), owner));
+        eventPublisher.publishEvent(new JobCreatedEvent(saved.getId()));
+        return JobResponse.from(saved);
     }
 
     @Transactional(readOnly = true)
@@ -52,4 +59,4 @@ public class JobService {
                 .map(JobResponse::from)
                 .toList();
     }
-}
+}   
