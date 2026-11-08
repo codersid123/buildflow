@@ -11,6 +11,8 @@ public record JobResponse(
         String branch,
         String command,
         JobStatus status,
+        Integer exitCode,
+        String output,
         String owner,
         Instant createdAt,
         Instant updatedAt
@@ -22,6 +24,8 @@ public record JobResponse(
                 job.getBranch(),
                 job.getCommand(),
                 job.getStatus(),
+                job.getExitCode(),
+                job.getOutput(),
                 job.getOwner().getUsername(),
                 job.getCreatedAt(),
                 job.getUpdatedAt());

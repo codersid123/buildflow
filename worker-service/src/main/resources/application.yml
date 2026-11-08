@@ -6,3 +6,13 @@ spring:
     port: 5672
     username: guest
     password: guest
+    listener:
+      simple:
+        prefetch: 1
+  datasource:
+    url: jdbc:postgresql://localhost:5433/buildflow
+    username: postgres
+    password: pass
+  jpa:
+    hibernate:
+      ddl-auto: none

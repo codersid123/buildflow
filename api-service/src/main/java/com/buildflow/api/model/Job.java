@@ -37,6 +37,11 @@ public class Job {
 
     private Instant updatedAt;
 
+    @Column(columnDefinition = "TEXT")
+    private String output;
+
+    private Integer exitCode;
+
     public Job(String repoUrl, String branch, String command, User owner) {
         this.repoUrl = repoUrl;
         this.branch = branch;
