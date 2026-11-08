@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class CommandRunner {
@@ -19,9 +20,15 @@ public class CommandRunner {
 
     private static final boolean WINDOWS =
             System.getProperty("os.name").toLowerCase().startsWith("windows");
+    
+    private final long timeoutSeconds;
+    private final int maxOutputChars;
 
-    private static final long TIMEOUT_SECONDS = 600;       // kill jobs after 10 minutes
-    private static final int MAX_OUTPUT_CHARS = 65536;     // keep last 64 KB of output
+    public CommandRunner(@Value("${worker.job-timeout-seconds:600}") long timeoutSeconds,
+                         @Value("${worker.max-output-chars:65536}") int maxOutputChars) {
+        this.timeoutSeconds = timeoutSeconds;
+        this.maxOutputChars = maxOutputChars;
+    }
 
     public record Result(int exitCode, String output) {}
 
@@ -37,14 +44,14 @@ public class CommandRunner {
             pb.redirectOutput(logFile.toFile());
 
             Process process = pb.start();
-            boolean finished = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
 
             if (!finished) {
                 process.descendants().forEach(ProcessHandle::destroyForcibly);
                 process.destroyForcibly();
                 process.waitFor();
                 return new Result(-1, readTail(logFile)
-                        + "\n[buildflow] Killed: exceeded " + TIMEOUT_SECONDS + "s timeout");
+                        + "\n[buildflow] Killed: exceeded " + timeoutSeconds + "s timeout");
             }
             return new Result(process.exitValue(), readTail(logFile));
         } finally {
@@ -56,11 +63,11 @@ public class CommandRunner {
     private String readTail(Path file) throws IOException {
         Charset charset = Charset.forName(System.getProperty("native.encoding", "UTF-8"));
         String text = Files.readString(file, charset);
-        if (text.length() <= MAX_OUTPUT_CHARS) {
+        if (text.length() <= maxOutputChars) {
             return text;
         }
-        return "[buildflow] Output truncated, showing last " + MAX_OUTPUT_CHARS + " chars\n"
-                + text.substring(text.length() - MAX_OUTPUT_CHARS);
+        return "[buildflow] Output truncated, showing last " + maxOutputChars + " chars\n"
+                + text.substring(text.length() - maxOutputChars);
     }
 
     private void deleteQuietly(Path path) {

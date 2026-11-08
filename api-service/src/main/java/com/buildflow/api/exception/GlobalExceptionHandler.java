@@ -8,6 +8,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -19,14 +20,14 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
-        @ExceptionHandler(UsernameTakenException.class)
+    @ExceptionHandler(UsernameTakenException.class)
     public ProblemDetail handleUsernameTaken(UsernameTakenException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Username taken");
         return problem;
     }
 
-        @ExceptionHandler(InvalidCredentialsException.class)
+    @ExceptionHandler(InvalidCredentialsException.class)
     public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         problem.setTitle("Login failed");
@@ -42,6 +43,15 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
         problem.setTitle("Invalid request");
         problem.setProperty("errors", errors);
+        return problem;
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "'" + ex.getValue() + "' is not a valid value for '" + ex.getName() + "'");
+        problem.setTitle("Invalid parameter");
         return problem;
     }
 }

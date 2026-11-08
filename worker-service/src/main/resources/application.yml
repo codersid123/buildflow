@@ -1,3 +1,6 @@
+worker:
+  job-timeout-seconds: 600
+  max-output-chars: 65536
 spring:
   application:
     name: worker-service
