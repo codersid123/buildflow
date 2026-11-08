@@ -10,6 +10,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.buildflow.api.dto.CreateJobRequest;
 import com.buildflow.api.dto.JobResponse;
 import com.buildflow.api.service.JobService;
+import java.security.Principal;
 
 import jakarta.validation.Valid;
 
@@ -23,9 +24,10 @@ public class JobController {
         this.jobService = jobService;
     }
 
-    @PostMapping
-    public ResponseEntity<JobResponse> createJob(@Valid @RequestBody CreateJobRequest request) {
-        JobResponse created = jobService.createJob(request);
+        @PostMapping
+    public ResponseEntity<JobResponse> createJob(@Valid @RequestBody CreateJobRequest request,
+                                                 Principal principal) {
+        JobResponse created = jobService.createJob(request, principal.getName());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(created.id())
@@ -34,12 +36,12 @@ public class JobController {
     }
 
     @GetMapping("/{id}")
-    public JobResponse getJob(@PathVariable Long id) {
-        return jobService.getJob(id);
+    public JobResponse getJob(@PathVariable Long id, Principal principal) {
+        return jobService.getJob(id, principal.getName());
     }
 
     @GetMapping
-    public List<JobResponse> listJobs() {
-        return jobService.listJobs();
+    public List<JobResponse> listJobs(Principal principal) {
+        return jobService.listJobs(principal.getName());
     }
 }

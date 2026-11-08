@@ -11,6 +11,7 @@ public record JobResponse(
         String branch,
         String command,
         JobStatus status,
+        String owner,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -21,6 +22,7 @@ public record JobResponse(
                 job.getBranch(),
                 job.getCommand(),
                 job.getStatus(),
+                job.getOwner().getUsername(),
                 job.getCreatedAt(),
                 job.getUpdatedAt());
     }

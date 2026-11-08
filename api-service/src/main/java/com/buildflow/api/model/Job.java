@@ -37,10 +37,11 @@ public class Job {
 
     private Instant updatedAt;
 
-    public Job(String repoUrl, String branch, String command) {
+    public Job(String repoUrl, String branch, String command, User owner) {
         this.repoUrl = repoUrl;
         this.branch = branch;
         this.command = command;
+        this.owner = owner;
         this.status = JobStatus.PENDING;
     }
 
@@ -54,4 +55,8 @@ public class Job {
     void onUpdate() {
         updatedAt = Instant.now();
     }
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 }
