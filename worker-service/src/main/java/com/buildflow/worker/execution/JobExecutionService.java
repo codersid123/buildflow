@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.buildflow.worker.model.Job;
 import com.buildflow.worker.model.JobStatus;
 import com.buildflow.worker.repository.JobRepository;
+import com.buildflow.worker.cache.JobStatusCache;
 
 @Service
 public class JobExecutionService {
@@ -18,10 +19,14 @@ public class JobExecutionService {
 
     private final JobRepository jobRepository;
     private final CommandRunner commandRunner;
+    private final JobRepository jobRepository;
+    private final CommandRunner commandRunner;
+    private final JobStatusCache jobStatusCache;
 
-    public JobExecutionService(JobRepository jobRepository, CommandRunner commandRunner) {
+    public JobExecutionService(JobRepository jobRepository, CommandRunner commandRunner, JobStatusCache jobStatusCache) {
         this.jobRepository = jobRepository;
         this.commandRunner = commandRunner;
+        this.jobStatusCache = jobStatusCache;
     }
 
     public void execute(Long jobId) {
@@ -38,6 +43,7 @@ public class JobExecutionService {
             return;
         }
         log.info("Job {} RUNNING: {}", jobId, job.getCommand());
+        jobStatusCache.putStatus(jobId, JobStatus.RUNNING);
 
         // 2. Run the command
         JobStatus finalStatus;
@@ -61,6 +67,7 @@ public class JobExecutionService {
 
         // 3. Save the result
         jobRepository.finish(jobId, finalStatus, output, exitCode, Instant.now());
+        jobStatusCache.putStatus(jobId, finalStatus);
         log.info("Job {} {} (exit code {})", jobId, finalStatus, exitCode);
     }
 }

@@ -13,6 +13,7 @@ import com.buildflow.api.service.JobService;
 import java.security.Principal;
 
 import jakarta.validation.Valid;
+import com.buildflow.api.dto.JobStatusResponse;
 
 @RestController
 @RequestMapping("/api/jobs")
@@ -24,7 +25,7 @@ public class JobController {
         this.jobService = jobService;
     }
 
-        @PostMapping
+    @PostMapping
     public ResponseEntity<JobResponse> createJob(@Valid @RequestBody CreateJobRequest request,
                                                  Principal principal) {
         JobResponse created = jobService.createJob(request, principal.getName());
@@ -38,6 +39,11 @@ public class JobController {
     @GetMapping("/{id}")
     public JobResponse getJob(@PathVariable Long id, Principal principal) {
         return jobService.getJob(id, principal.getName());
+    }
+
+    @GetMapping("/{id}/status")
+    public JobStatusResponse getJobStatus(@PathVariable Long id, Principal principal) {
+        return jobService.getJobStatus(id, principal.getName());
     }
 
     @GetMapping

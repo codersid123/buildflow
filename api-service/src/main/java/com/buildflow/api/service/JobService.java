@@ -14,6 +14,9 @@ import com.buildflow.api.repository.JobRepository;
 import com.buildflow.api.repository.UserRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import com.buildflow.api.event.JobCreatedEvent;
+import java.util.Optional;
+import com.buildflow.api.cache.JobStatusCache;
+import com.buildflow.api.dto.JobStatusResponse;
 
 @Service
 public class JobService {
@@ -21,13 +24,19 @@ public class JobService {
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final JobRepository jobRepository;
+    private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    private final JobStatusCache jobStatusCache;
 
     public JobService(JobRepository jobRepository, 
                       UserRepository userRepository,
-                      ApplicationEventPublisher eventPublisher) {
+                      ApplicationEventPublisher eventPublisher,
+                      JobStatusCache jobStatusCache) {
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
+        this.jobStatusCache = jobStatusCache;
     }
 
         @Transactional
@@ -44,6 +53,23 @@ public class JobService {
         Job job = jobRepository.findByIdAndOwnerUsername(id, username)
                 .orElseThrow(() -> new JobNotFoundException(id));
         return JobResponse.from(job);
+    }
+
+    public JobStatusResponse getJobStatus(Long id, String username) {
+        // 1. Try Redis
+        Optional<JobStatusCache.Entry> cached = jobStatusCache.get(id);
+        if (cached.isPresent()) {
+            if (!cached.get().owner().equals(username)) {
+                throw new JobNotFoundException(id);   // not your job
+            }
+            return new JobStatusResponse(id, cached.get().status(), "cache");
+        }
+
+        // 2. Miss -> Postgres, then fill Redis for next time
+        Job job = jobRepository.findByIdAndOwnerUsername(id, username)
+                .orElseThrow(() -> new JobNotFoundException(id));
+        jobStatusCache.put(id, job.getStatus(), username);
+        return new JobStatusResponse(id, job.getStatus(), "database");
     }
 
     @Transactional(readOnly = true)

@@ -16,6 +16,12 @@ spring:
     url: jdbc:postgresql://localhost:5433/buildflow
     username: postgres
     password: pass
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 500ms
+      connect-timeout: 500ms
   jpa:
     hibernate:
       ddl-auto: none
